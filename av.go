@@ -4,54 +4,92 @@ package av
 // https://developer.apple.com/documentation/avfoundation/avspeechsynthesisvoice
 // https://developer.apple.com/documentation/avfaudio/avspeechsynthesizer
 
-// #cgo CFLAGS: -x objective-c -fmodules -fblocks
-// #cgo LDFLAGS: -framework Foundation
-// #import <Foundation/Foundation.h>
-// #import <AVFoundation/AVFoundation.h>
-//
-// void textToSpeech(const char *text) {
-//     NSString *textToSay = [NSString stringWithUTF8String:text];
-//     AVSpeechSynthesisVoice *voice = [AVSpeechSynthesisVoice voiceWithIdentifier:@"com.apple.ttsbundle.siri_Arthur_en-GB_compact"];
-//     AVSpeechUtterance *utterance = [AVSpeechUtterance speechUtteranceWithString:textToSay];
-//     utterance.voice = voice;
-//     utterance.rate = 0.57;
-//     utterance.volume = 1.0;
-//     utterance.postUtteranceDelay = 0.5;
-//     utterance.pitchMultiplier = 1.0;
-//
-//     AVSpeechSynthesizer *synthesizer = [[AVSpeechSynthesizer alloc] init];
-//     [synthesizer speakUtterance:utterance];
-//
-//     while(synthesizer.speaking);
-//        sleep(1);
-// }
-//
-// void textToSpeechWithVoice(const char *text, const char *voiceIdentifier) {
-//     NSString *textToSay = [NSString stringWithUTF8String:text];
-//     NSString *voiceIdentifierString = [NSString stringWithUTF8String:voiceIdentifier];
-//     AVSpeechSynthesisVoice *voice = [AVSpeechSynthesisVoice voiceWithIdentifier:voiceIdentifierString];
-//     AVSpeechUtterance *utterance = [AVSpeechUtterance speechUtteranceWithString:textToSay];
-//     utterance.voice = voice;
-//     utterance.rate = 0.57;
-//     utterance.volume = 1.0;
-//     utterance.postUtteranceDelay = 0.2;
-//     utterance.pitchMultiplier = 1.0;
-//
-//     AVSpeechSynthesizer *synthesizer = [[AVSpeechSynthesizer alloc] init];
-//     [synthesizer speakUtterance:utterance];
-//
-//     while(synthesizer.speaking);
-//        sleep(1);
-// }
-//
-// void listVoices() {
-//     NSArray *allVoices = [AVSpeechSynthesisVoice speechVoices];
-//
-//     for (AVSpeechSynthesisVoice *voice in allVoices) {
-//         NSLog(@"Voice Name: %@, Identifier: %@, Quality: %ld", voice.name, voice.identifier, (long)voice.quality);
-//     }
-// }
+/*
+ #cgo CFLAGS: -x objective-c -fmodules -fblocks
+ #cgo LDFLAGS: -framework Foundation
+ #import <Foundation/Foundation.h>
+ #import <AVFoundation/AVFoundation.h>
+
+void textToSpeech(const char *text) {
+    NSString *textToSay = [NSString stringWithUTF8String:text];
+    AVSpeechSynthesisVoice *voice = [AVSpeechSynthesisVoice voiceWithIdentifier:@"com.apple.ttsbundle.siri_Arthur_en-GB_compact"];
+    AVSpeechUtterance *utterance = [AVSpeechUtterance speechUtteranceWithString:textToSay];
+    utterance.voice = voice;
+    utterance.rate = 0.57;
+    utterance.volume = 1.0;
+    utterance.postUtteranceDelay = 0.5;
+    utterance.pitchMultiplier = 1.0;
+
+    AVSpeechSynthesizer *synthesizer = [[AVSpeechSynthesizer alloc] init];
+    [synthesizer speakUtterance:utterance];
+
+    while(synthesizer.speaking);
+       sleep(1);
+}
+
+void textToSpeechWithVoice(const char *text, const char *voiceIdentifier) {
+    NSString *textToSay = [NSString stringWithUTF8String:text];
+    NSString *voiceIdentifierString = [NSString stringWithUTF8String:voiceIdentifier];
+    AVSpeechSynthesisVoice *voice = [AVSpeechSynthesisVoice voiceWithIdentifier:voiceIdentifierString];
+    AVSpeechUtterance *utterance = [AVSpeechUtterance speechUtteranceWithString:textToSay];
+    utterance.voice = voice;
+    utterance.rate = 0.57;
+    utterance.volume = 1.0;
+    utterance.postUtteranceDelay = 0.2;
+    utterance.pitchMultiplier = 1.0;
+
+    AVSpeechSynthesizer *synthesizer = [[AVSpeechSynthesizer alloc] init];
+    [synthesizer speakUtterance:utterance];
+
+    while(synthesizer.speaking);
+       sleep(1);
+}
+
+void listVoices() {
+    NSArray *allVoices = [AVSpeechSynthesisVoice speechVoices];
+
+    for (AVSpeechSynthesisVoice *voice in allVoices) {
+        NSLog(@"Voice Name: %@, Identifier: %@, Quality: %ld", voice.name, voice.identifier, (long)voice.quality);
+    }
+}
+
+AVAudioRecorder *startRecording(const char *filePath) {
+    NSError *error;
+
+	// AVAudioSession *session = [AVAudioSession sharedInstance];
+    // [session setCategory:AVAudioSessionCategoryRecord error:&error];
+    // [session setActive:YES error:&error];
+
+    NSMutableDictionary *settings = [NSMutableDictionary dictionary];
+    [settings setValue:@(kAudioFormatMPEG4AAC) forKey:AVFormatIDKey];
+    [settings setValue:@(16000.0) forKey:AVSampleRateKey];
+    [settings setValue:@(1) forKey:AVNumberOfChannelsKey];
+
+	NSString *filePathString = [NSString stringWithUTF8String:filePath];
+	NSURL *url = [NSURL fileURLWithPath:filePathString];
+    AVAudioRecorder *recorder = [[AVAudioRecorder alloc] initWithURL:url settings:settings error:&error];
+
+    if (recorder) {
+        [recorder prepareToRecord];
+        [recorder record];
+    } else {
+        NSLog(@"%@", [error localizedDescription]);
+    }
+
+    return recorder;
+}
+
+void stopRecording(AVAudioRecorder *recorder) {
+    [recorder stop];
+    // AVAudioSession *session = [AVAudioSession sharedInstance];
+    // [session setActive:NO error:nil];
+}
+*/
 import "C"
+import (
+	"context"
+	"unsafe"
+)
 
 const (
 	VoiceSiriFemale = "com.apple.ttsbundle.siri_female_en-GB_premium"
@@ -248,20 +286,35 @@ const (
 	*/
 )
 
+// TextToSpeech speaks the text with the default voice (Siri female).
 func TextToSpeech(text string) {
 	C.textToSpeech(C.CString(text))
 }
 
+// TextToSpeechWithVoice speaks the text with the given voice.
 func TextToSpeechWithVoice(text string, voice string) {
 	C.textToSpeechWithVoice(C.CString(text), C.CString(voice))
 }
 
+// PrintVoices prints the available voices to stdout.
 func PrintVoices() {
 	C.listVoices()
 }
 
-func main() {
-	text := "Hello! This is Arthur."
+// RecordAudioToFile records audio to a file until the context is done.
+//
+// File format is determined by the file extension, which must be ".m4a" to work.
+func RecordAudioToFile(ctx context.Context, path string) {
+	cfilePath := C.CString(path)
+	defer C.free(unsafe.Pointer(cfilePath))
 
-	TextToSpeechWithVoice(text, "com.apple.ttsbundle.siri_Arthur_en-GB_premium")
+	// Start recording
+	recorder := C.startRecording(cfilePath)
+	defer C.free(unsafe.Pointer(recorder))
+
+	// Record for duration until context is done.
+	<-ctx.Done()
+
+	// Stop recording
+	C.stopRecording(recorder)
 }
