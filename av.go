@@ -24,7 +24,6 @@ void textToSpeech(const char *text) {
     [synthesizer speakUtterance:utterance];
 
     while(synthesizer.speaking);
-       sleep(1);
 }
 
 void textToSpeechWithVoice(const char *text, const char *voiceIdentifier) {
@@ -42,7 +41,6 @@ void textToSpeechWithVoice(const char *text, const char *voiceIdentifier) {
     [synthesizer speakUtterance:utterance];
 
     while(synthesizer.speaking);
-       sleep(1);
 }
 
 void listVoices() {
@@ -83,6 +81,22 @@ void stopRecording(AVAudioRecorder *recorder) {
     [recorder stop];
     // AVAudioSession *session = [AVAudioSession sharedInstance];
     // [session setActive:NO error:nil];
+}
+
+void playAudioFile(const char *file_path) {
+    @autoreleasepool {
+        NSString *filePath = [NSString stringWithUTF8String:file_path];
+        NSURL *fileURL = [NSURL fileURLWithPath:filePath];
+        NSError *error = nil;
+        AVAudioPlayer *audioPlayer = [[AVAudioPlayer alloc] initWithContentsOfURL:fileURL error:&error];
+        if (error) {
+             NSLog(@"%@", [error localizedDescription]);
+        } else {
+            [audioPlayer prepareToPlay];
+            [audioPlayer play];
+            [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow: audioPlayer.duration]];
+        }
+    }
 }
 */
 import "C"
@@ -317,4 +331,12 @@ func RecordAudioToFile(ctx context.Context, path string) {
 
 	// Stop recording
 	C.stopRecording(recorder)
+}
+
+// PlayAudioFile plays the audio file at the given path.
+func PlayAudioFile(path string) {
+	cfilePath := C.CString(path)
+	defer C.free(unsafe.Pointer(cfilePath))
+
+	C.playAudioFile(cfilePath)
 }
